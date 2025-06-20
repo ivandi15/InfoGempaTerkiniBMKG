@@ -11,36 +11,33 @@ class GempaApp extends StatelessWidget {
     return MaterialApp(
       title: 'Gempa Terkini BMKG',
       debugShowCheckedModeBanner: false,
-      // Untuk menggunakan tema gelap dengan latar belakang abu-abu gelap
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: Color(0xFF1E1E1E),
         useMaterial3: true,
         textTheme: ThemeData.dark().textTheme.apply(
-              fontFamily: 'Roboto', // Untuk font jika tersedia
+              fontFamily: 'Roboto',
             ),
       ),
-      home: GempaPage(), // Untuk menampilkan halaman utama
+      home: GempaPage(),
     );
   }
 }
 
-// Clas halaman utama aplikasi
 class GempaPage extends StatefulWidget {
   @override
   _GempaPageState createState() => _GempaPageState();
 }
 
 class _GempaPageState extends State<GempaPage> {
-  List<dynamic> gempaList = []; // Untuk menyimpan daftar data gempa
-  bool isLoading = true; // Untuk loading indicator
+  List<dynamic> gempaList = [];
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    fetchGempaData(); // Ambil data saat halaman dimulai
+    fetchGempaData();
   }
 
-  // Fungsi untuk mengambil data gempa dari API BMKG
   Future<void> fetchGempaData() async {
     final url = Uri.parse('https://data.bmkg.go.id/DataMKG/TEWS/gempaterkini.json');
     final response = await http.get(url);
@@ -59,19 +56,17 @@ class _GempaPageState extends State<GempaPage> {
     }
   }
 
-  // Bagian untuk menentukan warna berdasarkan magnitudo gempa
   Color getMagnitudeColor(double magnitude) {
-    if (magnitude < 3.0) return const Color.fromARGB(255, 255, 255, 255);
-    if (magnitude < 4.0) return Color.fromARGB(255, 0, 255, 72); // Hijau
-    if (magnitude < 5.0) return Color.fromARGB(255, 255, 230, 0); // Kuning
-    if (magnitude < 6.0) return Color.fromARGB(255, 255, 153, 0); // Jingga
-    return Color.fromARGB(255, 255, 0, 0); // Merah
+    if (magnitude < 3.0) return Colors.white;
+    if (magnitude < 4.0) return Color.fromARGB(255, 0, 255, 72);
+    if (magnitude < 5.0) return Color.fromARGB(255, 255, 230, 0);
+    if (magnitude < 6.0) return Color.fromARGB(255, 255, 153, 0);
+    return Color.fromARGB(255, 255, 0, 0);
   }
 
-  // Widget untuk kotak legenda warna
-  Widget _buildLegendBox(String label, String range, Color bgColor, Color textColor) {
+  Widget _buildLegendBox(String label, String skala, String range, Color bgColor, Color textColor) {
     return Container(
-      width: 58,
+      width: 70,
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
       decoration: BoxDecoration(
         color: bgColor,
@@ -91,10 +86,20 @@ class _GempaPageState extends State<GempaPage> {
           ),
           SizedBox(height: 2),
           Text(
+            skala,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 10,
+              fontStyle: FontStyle.italic,
+              color: textColor,
+            ),
+          ),
+          SizedBox(height: 2),
+          Text(
             range,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 10,
               color: textColor,
             ),
           ),
@@ -103,7 +108,6 @@ class _GempaPageState extends State<GempaPage> {
     );
   }
 
-  // Header aplikasi berisi judul dan legenda warna
   Widget buildHeader() {
     return Padding(
       padding: const EdgeInsets.all(20),
@@ -129,17 +133,16 @@ class _GempaPageState extends State<GempaPage> {
             ),
           ),
           const SizedBox(height: 20),
-          // Baris legenda warna
           Wrap(
             spacing: 8,
             runSpacing: 8,
             alignment: WrapAlignment.center,
             children: [
-              _buildLegendBox("Putih", "< 3", Colors.white, Colors.black),
-              _buildLegendBox("Hijau", "3.0 - 3.9", Color.fromARGB(255, 0, 255, 72), Colors.black),
-              _buildLegendBox("Kuning", "4.0 - 4.9", Color.fromARGB(255, 255, 230, 0), Colors.black),
-              _buildLegendBox("Jingga", "5.0 - 5.9", Color.fromARGB(255, 255, 153, 0), Colors.black),
-              _buildLegendBox("Merah", "≥ 6", Color.fromARGB(255, 255, 0, 0), Colors.black),
+              _buildLegendBox("Putih", "Skala I-II", "< 3", Colors.white, Colors.black),
+              _buildLegendBox("Hijau", "Skala III-V", "3.0 - 3.9", Color.fromARGB(255, 0, 255, 72), Colors.black),
+              _buildLegendBox("Kuning", "Skala VI", "4.0 - 4.9", Color.fromARGB(255, 255, 230, 0), Colors.black),
+              _buildLegendBox("Jingga", "Skala VII-VIII", "5.0 - 5.9", Color.fromARGB(255, 255, 153, 0), Colors.black),
+              _buildLegendBox("Merah", "Skala IX-XII", "≥ 6", Color.fromARGB(255, 255, 0, 0), Colors.black),
             ],
           ),
         ],
@@ -147,7 +150,6 @@ class _GempaPageState extends State<GempaPage> {
     );
   }
 
-  // Bagian untuk menampilkan card data gempa
   Widget buildGempaCard(dynamic gempa) {
     double magnitude = double.tryParse(gempa['Magnitude']) ?? 0.0;
 
@@ -155,7 +157,7 @@ class _GempaPageState extends State<GempaPage> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Color(0xFF2C2C2C), // warna latar belakang kartu
+        color: Color(0xFF2C2C2C),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -168,7 +170,6 @@ class _GempaPageState extends State<GempaPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Bagian Lokasi gempa
           Row(
             children: [
               Icon(Icons.location_on_outlined, color: Colors.redAccent),
@@ -184,8 +185,6 @@ class _GempaPageState extends State<GempaPage> {
           const SizedBox(height: 8),
           Divider(thickness: 2, color: Colors.white30),
           const SizedBox(height: 10),
-
-          // Bagian keterangan Magnitudo
           Row(
             children: [
               Icon(Icons.speed, size: 20, color: Colors.orange),
@@ -201,18 +200,11 @@ class _GempaPageState extends State<GempaPage> {
                     children: [
                       TextSpan(
                         text: "Magnitudo: ",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
                       ),
                       TextSpan(
                         text: "${gempa['Magnitude']}",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.black),
                       ),
                     ],
                   ),
@@ -220,10 +212,7 @@ class _GempaPageState extends State<GempaPage> {
               ),
             ],
           ),
-
           const SizedBox(height: 6),
-
-          // Bagian keterangan Kedalaman
           Row(
             children: [
               Icon(Icons.vertical_align_bottom, size: 20, color: Colors.lightBlueAccent),
@@ -233,28 +222,18 @@ class _GempaPageState extends State<GempaPage> {
                   children: [
                     TextSpan(
                       text: "Kedalaman: ",
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                     TextSpan(
                       text: "${gempa['Kedalaman']}",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.white,
-                      ),
+                      style: TextStyle(fontSize: 15, color: Colors.white),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-
           const SizedBox(height: 6),
-
-          // Bagian keterangan Waktu
           Row(
             children: [
               Icon(Icons.access_time_rounded, size: 20, color: Colors.lightGreenAccent),
@@ -264,18 +243,11 @@ class _GempaPageState extends State<GempaPage> {
                   children: [
                     TextSpan(
                       text: "Waktu: ",
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                     TextSpan(
                       text: "${gempa['Tanggal']} ${gempa['Jam']}",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.white,
-                      ),
+                      style: TextStyle(fontSize: 15, color: Colors.white),
                     ),
                   ],
                 ),
@@ -287,7 +259,6 @@ class _GempaPageState extends State<GempaPage> {
     );
   }
 
-  // Membangun seluruh tampilan aplikasi
   @override
   Widget build(BuildContext context) {
     return Scaffold(
